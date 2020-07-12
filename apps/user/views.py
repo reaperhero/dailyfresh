@@ -209,7 +209,16 @@ class UserInfoView(LoginRequiredMixin, View):
     """用户中心-信息页"""
 
     def get(self, request):
-        return render(request, 'user_center_info.html', {'page': 'user'})
+        # page='user'
+        # 如果用户未登录->AnonymousUser类的一个实例
+        # 如果用户登录->User类的一个实例
+        # request.user.is_authenticated()
+        # 文档地址：https://yiyibooks.cn/xx/django_182/topics/auth/default.html#user-objects
+        # 除了你给模板文件传递的模板变量之外，django框架会把request.user也传给模板文件
+        user = request.user
+        # 获取个人信息
+        address = Address.objects.get_default_address(user=user)
+        return render(request, 'user_center_info.html', {'page': 'user','address':address})
 
 
 # /user/order
@@ -231,7 +240,7 @@ class AddressView(LoginRequiredMixin, View):
         #     address = Address.objects.get(user=user, is_default=True)
         # except Address.DoesNotExist:
         #     address = None
-        address =  Address.objects.get_default_address(user=user)
+        address = Address.objects.get_default_address(user=user)
         return render(request, 'user_center_site.html', {'page': 'address','address':address})
 
     def post(self, request):
