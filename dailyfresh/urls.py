@@ -19,10 +19,10 @@ from django.contrib import admin
 from django.conf.urls import url
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    url(r'admin/', admin.site.urls),
     url(r'^tinymce/', include('tinymce.urls')),  # 富文本编辑器
-    url(r'^user/', include('user.urls'), name='user'),  # 用户模块
-    url(r'^cart/', include('cart.urls'), name='cart'),  # 购物车模块
-    url(r'^order/', include('order.urls'), name='order'),  # 订单模块
-    url(r'^', include('goods.urls'), name='goods'),  # 商品模块
+    url(r'^user/', include(('user.urls', 'user'))),  # 用户模块
+    url(r'^cart/', include(('cart.urls', 'cart'))),  # 购物车模块
+    url(r'^order/', include(('order.urls', 'order'))),  # 订单模块
+    url(r'^', include(('goods.urls', 'goods'))),  # 商品模块
 ]

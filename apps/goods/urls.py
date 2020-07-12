@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
-from . import views
+from goods.views import IndexView
 
 urlpatterns = [
-    url(r'^', views.index, name='index'),  # 列表页
+    url(r'^', IndexView.as_view(), name='index'), # 列表页
 ]
