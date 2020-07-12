@@ -5,8 +5,10 @@ aliyun-python-sdk-core-v3==2.13.3
 aliyun-python-sdk-kms==2.7.1
 amqp==2.6.0
 ansible==2.9.0
+anyjson==0.3.3
 billiard==3.6.3.0
-celery==4.4.6
+celery==4.3.0
+celery-with-redis==3.0
 certifi==2019.6.16
 cffi==1.13.1
 chardet==3.0.4
@@ -15,6 +17,7 @@ crcmod==1.7
 cryptography==2.8
 dateparser==0.7.1
 Django==2.2.6
+django-redis==4.12.1
 django-tinymce==3.0.2
 docopt==0.6.2
 elasticsearch==6.4.0
@@ -41,6 +44,7 @@ PyMySQL==0.9.3
 python-dateutil==2.8.0
 pytz==2019.2
 PyYAML==5.1.1
+redis==3.5.3
 regex==2019.6.8
 requests==2.22.0
 six==1.12.0
