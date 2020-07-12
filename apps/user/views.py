@@ -11,6 +11,8 @@ from django.conf import settings
 from user.models import User, Address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 from celery_tasks.tasks import send_register_active_email
+from django_redis import get_redis_connection
+from goods.models import GoodsSKU
 
 # Create your views here.
 
@@ -218,7 +220,27 @@ class UserInfoView(LoginRequiredMixin, View):
         user = request.user
         # 获取个人信息
         address = Address.objects.get_default_address(user=user)
-        return render(request, 'user_center_info.html', {'page': 'user','address':address})
+
+        # 获取用户浏览记录
+        con = get_redis_connection('default')
+        history_key = 'history_%d' % user.id
+        sku_ids = con.lrange(history_key, 0, 4)
+        # goods_li = GoodsSKU.objects.filter(id__in=sku_ids)
+        # goods_res = []
+        # for a_id in sku_ids:
+        #     for good in goods_li:
+        #         if a_id == good.id:
+        #             goods_res.append(good)
+        goods_li = []
+        for id in sku_ids:
+            good = GoodsSKU.objects.get(id=id)
+            goods_li.append(good)
+
+        # 组织上下文
+        context = {'page': 'user',
+                   'address': address,
+                   'goods_li': goods_li}
+        return render(request, 'user_center_info.html', context)
 
 
 # /user/order
@@ -241,7 +263,7 @@ class AddressView(LoginRequiredMixin, View):
         # except Address.DoesNotExist:
         #     address = None
         address = Address.objects.get_default_address(user=user)
-        return render(request, 'user_center_site.html', {'page': 'address','address':address})
+        return render(request, 'user_center_site.html', {'page': 'address', 'address': address})
 
     def post(self, request):
         receiver = request.POST.get('receiver')

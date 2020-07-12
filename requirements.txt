@@ -37,6 +37,7 @@ MarkupSafe==1.1.1
 oss2==2.7.0
 Pillow==7.1.2
 protobuf==3.9.1
+py3Fdfs==2.2.0
 pycparser==2.19
 pycryptodome==3.8.2
 PyEmail==0.0.1
