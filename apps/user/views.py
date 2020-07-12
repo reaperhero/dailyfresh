@@ -8,10 +8,9 @@ from django.urls import reverse
 from django.views import View
 
 from django.conf import settings
-from user.models import User
+from user.models import User, Address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 from celery_tasks.tasks import send_register_active_email
-
 
 # Create your views here.
 
@@ -172,7 +171,7 @@ class LoginView(View):
                 login(request, user)
 
                 # 获取登入后要跳转的地址,默认首页 http://localhost:8000/user/login?next=/user/
-                next_url = request.GET.get('next',reverse('goods:index'))
+                next_url = request.GET.get('next', reverse('goods:index'))
 
                 # 跳转到首页
                 response = redirect(next_url)
@@ -193,7 +192,7 @@ class LoginView(View):
 
 
 # /user/logout
-class LogoutView(LoginRequiredMixin,View):
+class LogoutView(LoginRequiredMixin, View):
     """退出登录"""
 
     def get(self, request):
@@ -206,7 +205,7 @@ class LogoutView(LoginRequiredMixin,View):
 
 
 # /user
-class UserInfoView(LoginRequiredMixin,View):
+class UserInfoView(LoginRequiredMixin, View):
     """用户中心-信息页"""
 
     def get(self, request):
@@ -214,7 +213,7 @@ class UserInfoView(LoginRequiredMixin,View):
 
 
 # /user/order
-class UserOrderView(LoginRequiredMixin,View):
+class UserOrderView(LoginRequiredMixin, View):
     """用户中心-订单页"""
 
     def get(self, request):
@@ -222,8 +221,43 @@ class UserOrderView(LoginRequiredMixin,View):
 
 
 # /uesr/address
-class AddressView(LoginRequiredMixin,View):
+class AddressView(LoginRequiredMixin, View):
     """用户中心-地址页"""
 
     def get(self, request):
-        return render(request, 'user_center_site.html', {'page': 'address'})
+        # 获取登录用户的对应的User对象
+        user = request.user
+        # try:
+        #     address = Address.objects.get(user=user, is_default=True)
+        # except Address.DoesNotExist:
+        #     address = None
+        address =  Address.objects.get_default_address(user=user)
+        return render(request, 'user_center_site.html', {'page': 'address','address':address})
+
+    def post(self, request):
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('addr')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+
+        # 校验数据
+        if not all([receiver, addr, phone]):
+            return render(request, 'user_center_site.html', {'errmsg': '数据不完整'})
+
+        # 校验数据
+        if not re.match(r'^1[3|4|5|7|8][0-9]{9}$', phone):
+            return render(request, 'user_center_site.html', {'errmsg': '手机格式不正确'})
+        user = request.user
+        # try:
+        #     address = Address.objects.get(user=user, is_default=True)
+        # except Address.DoesNotExist:
+        #     address = None
+        address = Address.objects.get_default_address(user=user)
+        if address:
+            is_default = False
+        else:
+            is_default = True
+        # 添加地址
+        Address.objects.create(user=user, receiver=receiver, addr=addr, zip_code=zip_code, phone=phone,
+                               is_default=is_default)
+        return redirect(reverse('user:address'))
