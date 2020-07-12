@@ -139,3 +139,28 @@ class ActiveView(View):
 class LoginView(View):
     def get(self, request):
         return render(request, 'login.html')
+
+    def post(self, request):
+        """登陆校验"""
+        username = request.POST.get('username')
+        password = request.POST.get('pwd')
+        if not all([username,password]):
+            return render(request,'login.html',{
+                'errmsg':'数据不完整'
+            })
+            # 业务处理： 登陆校验
+            # 自动密码加密对比
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            # 用户名已激活
+            if user.is_active:
+                # 用户已激活
+                # 记录用户的登陆状态
+                login(request, user)
+                return redirect((reverse('goods:index')))
+            else:
+                # 用户未激活
+                return render(request, 'login.html', {'errmsg': '账户未激活'})
+        else:
+            # 用户名或密码错误
+            return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
