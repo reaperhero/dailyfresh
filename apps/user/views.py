@@ -17,6 +17,9 @@ from celery_tasks.tasks import send_register_active_email
 
 
 # /user/register
+from utils.mixin import LoginRequiredMixin
+
+
 def register(request):
     if request.method == 'GET':
         return render(request, 'register.html')
@@ -114,7 +117,7 @@ class RegisterView(View):
         token = serializer.dumps(info)
         token = token.decode()
 
-        send_register_active_email.delay(email,username,token)
+        send_register_active_email.delay(email, username, token)
         # 跳转首页
         return redirect(reverse('goods:index'))
 
@@ -145,18 +148,18 @@ class LoginView(View):
         else:
             username = ''
             checked = ''
-        return render(request, 'login.html',{
-            'username':username,
-            'checked':checked
+        return render(request, 'login.html', {
+            'username': username,
+            'checked': checked
         })
 
     def post(self, request):
         """登陆校验"""
         username = request.POST.get('username')
         password = request.POST.get('pwd')
-        if not all([username,password]):
-            return render(request,'login.html',{
-                'errmsg':'数据不完整'
+        if not all([username, password]):
+            return render(request, 'login.html', {
+                'errmsg': '数据不完整'
             })
             # 业务处理： 登陆校验
             # 自动密码加密对比
@@ -168,11 +171,15 @@ class LoginView(View):
                 # 记录用户的登陆状态
                 login(request, user)
 
-                response = redirect((reverse('goods:index')))
+                # 获取登入后要跳转的地址,默认首页 http://localhost:8000/user/login?next=/user/
+                next_url = request.GET.get('next',reverse('goods:index'))
+
+                # 跳转到首页
+                response = redirect(next_url)
                 # 判断是否记住用户名
                 remember = request.POST.get('remember')
                 if remember == 'on':
-                    response.set_cookie('username',username,max_age=7*24*3600)
+                    response.set_cookie('username', username, max_age=7 * 24 * 3600)
                 else:
                     response.delete_cookie('username')
 
@@ -183,3 +190,40 @@ class LoginView(View):
         else:
             # 用户名或密码错误
             return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
+
+
+# /user/logout
+class LogoutView(LoginRequiredMixin,View):
+    """退出登录"""
+
+    def get(self, request):
+        """退出登录"""
+        # 清除用户的session信息
+        logout(request)
+
+        # 跳转到首页
+        return redirect(reverse('goods:index'))
+
+
+# /user
+class UserInfoView(LoginRequiredMixin,View):
+    """用户中心-信息页"""
+
+    def get(self, request):
+        return render(request, 'user_center_info.html', {'page': 'user'})
+
+
+# /user/order
+class UserOrderView(LoginRequiredMixin,View):
+    """用户中心-订单页"""
+
+    def get(self, request):
+        return render(request, 'user_center_order.html', {'page': 'order'})
+
+
+# /uesr/address
+class AddressView(LoginRequiredMixin,View):
+    """用户中心-地址页"""
+
+    def get(self, request):
+        return render(request, 'user_center_site.html', {'page': 'address'})
