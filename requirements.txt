@@ -14,7 +14,7 @@ cffi==1.13.1
 chardet==3.0.4
 Click==7.0
 crcmod==1.7
-cryptography==2.8
+cryptography==3.2
 dateparser==0.7.1
 Django==2.2.6
 django-redis==4.12.1
